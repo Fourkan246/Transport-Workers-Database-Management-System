@@ -1,0 +1,479 @@
+login:
+
+1.SELECT * FROM reginfo WHERE REG_EMAIL= :std_id and REG_PASS= :std_password
+
+
+
+
+
+index:
+
+1.select emp_id,first_name || ' ' || middle_name || ' ' || last_name, emp_nid,birth_cert_no,father_name,mother_name,date_of_birth,joining_date,
+                leaving_date,emp_type,reports_to,e.address.street || ', ' || e.address.road_no || ', ' || e.address.upazilla || ', ' ||e.address.city || ', ' || e.address.division
+                from employee e
+				
+********************trigger**********
+create or replace trigger delete_emp_trigger
+before delete 
+on employee
+for each row
+begin
+    insert into Ex_Employee values
+    (:old.Emp_id ,
+    :old.First_name , 
+    :old.Middle_name , 
+    :old.Last_name , 
+    :old.Emp_nid ,
+    :old.Birth_cert_no ,
+    :old.Father_name ,
+    :old.Mother_name ,
+    :old.Date_of_birth ,
+    :old.Leaving_date ,
+    :old.Joining_date ,
+    :old.Emp_type ,
+    :old.Reports_to ,
+    emp_addr_type(:old.address.Street , :old.address.Road_no  , :old.address.Upazilla , :old.address.City , :old.address.Division )
+    
+    );
+end;
+
+
+Register:
+
+1.select REGINFO_Reg_id_seq.nextval from dual
+
+***********sequence**********
+CREATE SEQUENCE REGINFO_Reg_id_seq
+START WITH 1001
+INCREMENT BY 1
+NOCYCLE;
+************************
+
+2.Insert into reginfo(REG_ID,REG_FIRST_NAME,REG_MIDDLE_NAME,REG_LAST_NAME,REG_EMAIL,REG_PASS) values ('$regseq','$reg_first_name','$reg_middle_name','$reg_last_name','$reg_email','$reg_pass'
+
+
+
+
+
+
+
+
+				
+newlyRegistered:
+1.select AUTO_ID, first_name ||' '|| MIDDLE_NAME ||' '|| last_name, emp_nid, emp_type from temp_employee where EMP_STATUS_NO = 1
+
+2.Update final.reginfo set CHECK_VAL='$promo_var
+
+3.Update final.temp_employee set EMP_STATUS_NO='$promo_var
+
+************trigger*********
+create or replace trigger employee_trigger
+after update of emp_status_no on 
+temp_employee
+for each row
+begin
+insert into employee(EMP_ID,First_name,Middle_name,
+Last_name,Emp_nid,Birth_cert_no, Father_name,
+Mother_name, Date_of_birth, Reports_to,
+address)
+values(:old.AUTO_ID,:old.First_name,:old.Middle_name,
+:old.Last_name, :old.Emp_nid, :old.Birth_cert_no, :old.Father_name,
+:old.Mother_name, :old.Date_of_birth, :old.Reports_to,
+emp_addr_type(:old.Street, :old.Road_no, :old.Upazilla, :old.City, :old.Division));
+end;
+
+4.Update final.temp_qualification set EMP_STATUS_NO='$promo_var
+
+**************trigger**********
+create or replace trigger qualification_trigger
+before update of emp_status_no on 
+TEMP_Qualification
+for each row
+begin
+insert into qualification(Quali_test_serial, Quali_test_date, Remarks_of_passedtest,
+ Amateur) values (:old.Quali_test_serial, :old.Quali_test_date, :old.Remarks_of_passedtest,
+ :old.Amateur);
+insert into education(Quali_test_serial, Quali_test_date, Edu_details)
+values(:old.Quali_test_serial, :old.Quali_test_date, :old.educational_qualification);
+
+insert into experience(Quali_test_serial, Quali_test_date, Yrs_of_experience , Previous_org )
+values(:old.Quali_test_serial, :old.Quali_test_date, :old.Yrs_of_experience, :old.Previous_org );
+end;
+
+****************************
+
+create or replace trigger qualification_trigger2
+after update of emp_status_no on 
+TEMP_Qualification
+for each row
+begin
+insert into qualified_as(Quali_test_serial ,Quali_test_date ,Emp_id )
+values(:old.Quali_test_serial ,:old.Quali_test_date ,:old.AUTO_ID );
+end;
+
+*************
+
+5.Update final.TEMP_Healthinfo set EMP_STATUS_NO='$promo_var
+
+***********
+create or replace trigger Healthinfo_trigger
+before update of emp_status_no on 
+temp_healthinfo
+for each row
+begin
+insert into Healthinfo(Test_serial , Test_date, Blood_group,
+ Height , Weight, Eyesight,  Drug_test ) values (:old.Test_serial , :old.Test_date, :old.Blood_group,
+ :old.Height , :old.Weight, :old.Eyesight,  :old.Drug_test);
+
+end;
+
+
+create or replace trigger Healthinfo_trigger2
+after update of emp_status_no on 
+temp_healthinfo
+for each row
+begin
+insert into Health_condition(Emp_id, Test_serial ,Test_date )
+values(:old.AUTO_ID, :old.Test_serial ,:old.Test_date  );
+end;
+
+
+****************************************
+
+
+
+
+
+
+
+
+
+
+ex-emp:
+1.select emp_id,first_name || ' ' || middle_name || ' ' || last_name, emp_nid,birth_cert_no,father_name,mother_name,date_of_birth,joining_date,
+                leaving_date,emp_type,reports_to,ex.address.street || ', ' || ex.address.road_no || ', ' || ex.address.upazilla || ', ' ||ex.address.city || ', ' || ex.address.division
+                from Ex_Employee ex
+
+
+
+				
+oneEmp:
+1.select emp_id,first_name || ' ' || middle_name || ' ' || last_name, emp_nid,birth_cert_no,
+father_name,mother_name,date_of_birth,joining_date,
+leaving_date,emp_type,reports_to,e.address.street || ', ' || e.address.road_no || ', ' || e.address.upazilla || ', ' ||e.address.city || ', ' || e.address.division
+from employee e where emp_id= :nid
+
+
+
+
+
+update-personal-info:
+1.Insert into Temp_Employee(Date_of_birth,AUTO_ID,First_name, MIDDLE_NAME,Last_name,Emp_nid,
+            Father_name,Mother_name,Emp_type,Reports_to,Street,Road_no,Upazilla,City,Division,EMP_STATUS_NO)
+            values (to_date('$date_dob','dd-mm-yyyy'),'$reg_id','$REG_FIRST_NAME','$REG_MIDDLE_NAME','$REG_LAST_NAME','$Emp_nid',
+            '$Father_name','$Mother_name','$Emp_type','$Reports_to','$Street','$Road_no','$Upazilla','$City','$Division','$CHECK_VAL')
+			
+
+
+
+
+			
+Education qualification experience:
+1.select emp_id,first_name||' ' ||middle_name||' '||last_name,edu_details,amateur,yrs_of_experience,previous_org,
+              remarks_of_passedtest
+              from employee join qualified_as using (emp_id)
+              join qualification using (Quali_test_serial,Quali_test_date  )
+              join education using (Quali_test_serial,Quali_test_date  )
+              join experience using (Quali_test_serial,Quali_test_date  )
+               where emp_id = :nid
+			   
+
+
+			   
+update-education:
+
+1.Update final.education set edu_details='$Educational_qualification'
+     where quali_test_serial='$serial' and quali_test_date='$date
+	 
+2.Update final.experience set yrs_of_experience='$Years_of_experience'
+    where quali_test_serial='$serial' and quali_test_date='$date
+3.Update final.experience set previous_org='$Previous_organization'
+    where quali_test_serial='$serial' and quali_test_date='$date
+
+
+
+
+	
+Dependents:
+
+1.select emp_id,first_name || ' ' || middle_name || ' ' || last_name, dep_nid,dep_name,relation,gender
+              from employee join depends_on using(emp_id) join dependents using (dep_nid) where emp_id = :nid
+			  
+update-dependents:
+
+1.Insert into dependents(dep_nid,dep_name,relation,gender)
+          values ('$Dep_nid','$Dep_name','$Relation','$Gender
+
+
+
+
+
+		  
+contact:
+
+1.select emp_id,first_name || ' ' || middle_name || ' ' || last_name, phone_num
+              from employee join phone_no using(emp_id) where emp_id = :nid
+			  
+2.select emp_id,first_name || ' ' || middle_name || ' ' || last_name, email_id
+              from employee join email using(emp_id) where emp_id = :nid
+
+
+
+			  
+health:
+
+1.select emp_id,first_name || ' ' || middle_name || ' ' || last_name, Test_serial,
+              Test_date,Blood_group, Height,Weight,Eyesight,Drug_test
+              from employee join health_condition using(emp_id) join healthinfo using (test_serial,test_date) 
+			  where emp_id = :nid
+update_health:
+
+1.Update final.healthinfo set height='$Height'
+     where test_serial='$serial' and test_date='$date
+	 
+2.Update final.healthinfo set weight='$Weight'
+    where test_serial='$serial' and test_date='$date
+	
+3.Update final.healthinfo set eyesight='$Eyesight'
+    where test_serial='$serial' and test_date='$date
+	
+	
+	
+	
+	
+Leave:
+
+1.select Emp_id,first_name||' '||middle_name||' '||last_name,start_date,end_date,reason,
+granting_person from leave
+join leave_taken using (application_no,application_date)
+join employee using (emp_id)
+where emp_id= :nid
+***function used to find the number of leaves taken******
+
+create or replace function findLeave(x in date, y in date,z in number)
+Return number
+as
+ans number:=0;
+begin
+select count(application_no) into ans from leave join leave_taken 
+using(application_no,application_date) join employee using(emp_id)
+where emp_id=z
+and application_date between x and y;
+return ans;
+end;
+
+************************
+
+
+
+
+
+worker_type:
+1.select emp_id,first_name||' '||middle_name||' '||last_name,driving_license,
+catagory,emp_type,reports_to from employee join driver using (emp_id)
+where emp_id= :nid
+2.select emp_id,first_name||' '||middle_name||' '||last_name,route_no,designation,sv_route
+from employee join supervisor using(emp_id)
+where emp_id= :nid
+3.select emp_type from
+employee where emp_id= :nid
+
+
+
+
+
+vehicle_route:
+1.select emp_id,first_name||' '||middle_name||' '||last_name,veh_name,model,veh_type,route_no,
+r.start_location,r.end_location, r.city from employee
+join driver using (emp_id)
+join assigned using(driving_license)
+join assignedvehicle using(reg_number)
+join goes_in using (reg_number)
+join route r using (route_no)
+where emp_id= :nid
+
+
+
+
+
+penalty and feedback:
+1.select emp_id,first_name||' '||middle_name||' '||last_name,penalty_date,amount_charged,
+reason_of_penalty,emp_behaviour,complaints from employee
+join penalty_charged using (emp_id)
+join penalty using (slip_no,penalty_date)
+join gets_feedback using(emp_id,emp_nid)
+join feedback using (emp_nid)
+where emp_id= :nid
+
+
+
+
+
+vehicle_damage:
+1.select emp_id,First_name||' '||middle_name||' '||last_name,driving_license,veh_name,model,
+reg_number,damaged_date,penalty_taken,exact_damage,location_of_damage from employee
+join driver using (emp_id)
+join assigned using(driving_license)
+join assignedvehicle using(reg_number)
+join got_damaged using(reg_number)
+join vehicle_damaged using (reg_number)
+where emp_id= :nid
+
+
+
+
+
+company_Help:
+
+1.select emp_id,first_name||' '||middle_name||' '||last_name,office_no,help_amount,cause_of_help from
+employee  join works_in using(emp_id)
+join companyinfo  using(office_no)
+join provides using (office_no,emp_id)
+join emergency_help using(emp_id) where emp_id= :nid
+
+
+
+
+total_working_days:
+1.select emp_id,first_name||' ' ||middle_name||' '||last_name,count(working_days.current_date1)
+from employee join working_days using (emp_id)
+ where Working_days.current_date1 between '11-JAN-2001' and sysdate
+ group by emp_id,first_name,middle_name,last_name
+ having emp_id= :nid
+ **********Group Function******
+
+ 
+ 
+ 
+ 
+
+ AssignedInsurance:
+
+1.select emp_id from employee
+2.select insurance_id_seq.nextval from dual
+
+******************sequence**************
+CREATE SEQUENCE insurance_id_seq
+START WITH 1001
+MAXVALUE 9999
+INCREMENT BY 1
+CYCLE;
+
+********************************
+
+
+3.Insert into Insurance(
+            Insurance_id ,
+            Company_name ,
+            Insurance_type ,
+            Insurance_amount )
+          values ('$insurance_id_seq','$company_name', '$insurance_type' , '$amount')
+4.Insert into Has_insurance(
+            Insurance_id ,
+            Emp_id )
+          values ('$insurance_id_seq','$emp_id' )
+
+
+
+
+
+
+AssignedOvertime:
+
+1.select emp_id from employee
+2.Insert into Overtime(
+            Emp_id ,
+            Shift  ,
+            Overtime_date )
+          values ('$emp_id', '$shift' , to_date('$overtime_date','yyyy-mm-dd')
+
+
+
+
+		  
+		  
+		  
+Assigned Leave:
+
+1.select leave_application_no_seq.nextval from dual
+***********sequence**************
+
+CREATE SEQUENCE leave_application_no_seq
+START WITH 1001
+MAXVALUE 9999
+INCREMENT BY 1
+CYCLE;
+
+************************************
+
+2.Insert into Leave(
+            Application_no  ,
+            Application_Date  ,
+            Start_date  ,
+            End_date ,
+            Granting_person ,
+            Reason  )
+          values ('$leave_application_no_seq',
+          to_date('$application_date','yyyy-mm-dd'), 
+          to_date('$start_date','yyyy-mm-dd'), 
+          to_date('$end_date','yyyy-mm-dd'), 
+          '$granting_person',
+          '$reason' )
+		  
+		  
+3.Insert into Leave_taken(
+            Emp_id  ,
+            Application_no ,
+            Application_Date  )
+          values ('$emp_id','$leave_application_no_seq',to_date('$application_date','yyyy-mm-dd') )
+		  
+		  
+		  
+		  
+		  
+		  
+		  
+		  
+		  
+		  
+Assigned Penalty:
+
+1.select penalty_slip_no_seq.nextval from dual
+
+*****************sequence**************
+CREATE SEQUENCE penalty_slip_no_seq
+START WITH 1001
+MAXVALUE 9999
+INCREMENT BY 1
+CYCLE;
+
+**********************************
+ 
+ 
+2.Insert into penalty(
+            Slip_no  ,
+            Amount_charged   ,
+            Reason_of_penalty   ,
+            Penalty_date  )
+          values ('$penalty_slip_no_seq',
+          '$amount_charged',
+          '$reason_of_penalt',
+          to_date('$penalty_date','yyyy-mm-dd') )
+		  
+		  
+		  
+3.Insert into Penalty_charged(
+            Slip_no  ,
+            Penalty_date  ,
+            Emp_id   )
+          values ('$penalty_slip_no_seq',to_date('$penalty_date','yyyy-mm-dd'), '$emp_id' )
